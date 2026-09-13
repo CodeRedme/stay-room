@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STAY Room — Study, Focus, Grow</title>
+<meta name="theme-color" content="#10111c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark">
+<div id="app">
+
+  <!-- ============ SIDE / BOTTOM NAV ============ -->
+  <nav id="bottomNav">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H10v-5.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20h3.5a1 1 0 0 0 1-1v-9"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-view="focus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.6 2.6"/></svg>
+      <span>Focus</span>
+    </button>
+    <button class="nav-item" data-view="subjects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H12v16h6.5a1.5 1.5 0 0 0 1.5-1.5v-13Z"/></svg>
+      <span>Subjects</span>
+    </button>
+    <button class="nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <div style="flex:1; display:flex; flex-direction:column;">
+    <!-- ============ TOP HERO (mobile only) ============ -->
+    <div class="top-hero">
+      <img src="stay-room-bg.jpg" alt="">
+      <div class="top-hero-content">
+        <div class="brand-mark"><span class="dot"></span><span>STAY ROOM</span></div>
+        <div class="mode-chip" id="modeChipTop">⭐ STAY Mode</div>
+      </div>
+    </div>
+
+    <main>
+
+      <!-- ============ HOME VIEW ============ -->
+      <section class="view active" id="view-home">
+        <div class="greeting">
+          <h1 id="greetingText">Good evening, STAY.</h1>
+          <p id="dateText">Loading date…</p>
+        </div>
+
+        <div class="focus-card">
+          <span class="subj-tag" id="nextExamTag">No exam added yet</span>
+          <div class="big-time" id="liveClock">--:--</div>
+          <div class="sub-label">right now</div>
+          <button class="btn-primary" data-goto="focus">🔒 Start a Focus Session</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-pill"><div class="n" id="statToday">0m</div><div class="l">Today</div></div>
+          <div class="stat-pill"><div class="n" id="statSessions">0</div><div class="l">Sessions</div></div>
+          <div class="stat-pill"><div class="n" id="statTasks">0/0</div><div class="l">Tasks</div></div>
+        </div>
+
+        <div class="section-head">
+          <h2>Today's tasks</h2>
+          <button data-goto="subjects">Manage</button>
+        </div>
+        <div id="taskList"></div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <input class="text-input" id="quickTaskInput" placeholder="Add a task for today…">
+          <button class="btn-primary" style="width:auto; padding:0 18px; margin:0;" id="quickTaskAdd">Add</button>
+        </div>
+      </section>
+
+      <!-- ============ FOCUS VIEW ============ -->
+      <section class="view" id="view-focus">
+        <div class="greeting"><h1>Focus Room</h1><p>Set it up, then disappear into it.</p></div>
+
+        <div class="focus-setup">
+          <div>
+            <span class="field-label">Subject</span>
+            <input class="text-input" id="focusSubject" placeholder="e.g. Physics">
+          </div>
+          <div>
+            <span class="field-label">Topic / goal (optional)</span>
+            <input class="text-input" id="focusTopic" placeholder="e.g. Electrostatics — finish NCERT Qs">
+          </div>
+          <div>
+            <span class="field-label">Duration</span>
+            <div class="chip-row" id="durationChips">
+              <button class="chip" data-min="15">15 min</button>
+              <button class="chip" data-min="25">25 min</button>
+              <button class="chip selected" data-min="45">45 min</button>
+              <button class="chip" data-min="60">60 min</button>
+              <button class="chip" data-min="90">90 min</button>
+            </div>
+          </div>
+          <div>
+            <span class="field-label">Study audio</span>
+            <div class="chip-row" id="audioChips">
+              <button class="chip selected" data-audio="silent">🔇 Silent</button>
+              <button class="chip" data-audio="loud">🔊 Loud study</button>
+              <button class="chip" data-audio="own">🎧 My own music</button>
+            </div>
+          </div>
+          <button class="btn-primary" id="beginFocusBtn">Begin Session</button>
+        </div>
+      </section>
+
+      <!-- ============ SUBJECTS VIEW ============ -->
+      <section class="view" id="view-subjects">
+        <div class="greeting"><h1>Subjects</h1><p>Your subjects, your system — add whatever you're studying.</p></div>
+
+        <div style="display:flex; gap:8px; margin:18px 0;">
+          <input class="text-input" id="subjectInput" placeholder="Add a subject…">
+          <button class="btn-primary" style="width:auto; padding:0 18px; margin:0;" id="subjectAdd">Add</button>
+        </div>
+
+        <div id="subjectList"></div>
+      </section>
+
+      <!-- ============ SETTINGS VIEW ============ -->
+      <section class="view" id="view-settings">
+        <div class="greeting"><h1>Settings</h1><p>Made with 🌷, kept on your device.</p></div>
+
+        <div class="settings-group" style="margin-top:18px;">
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">STAY Mode ⭐</div>
+              <div class="settings-row-desc">Fandom flavor: themes, mascots, easter eggs</div>
+            </div>
+            <button class="toggle on" id="toggleStayMode"></button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Light appearance</div>
+              <div class="settings-row-desc">Switch off Night Study for a lighter look</div>
+            </div>
+            <button class="toggle" id="toggleTheme"></button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Your name</div>
+              <div class="settings-row-desc">Used only for your greeting</div>
+            </div>
+            <input class="text-input" id="nameInput" style="width:120px; padding:8px 10px; text-align:right;" placeholder="STAY">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Export my data</div>
+              <div class="settings-row-desc">Download a backup file</div>
+            </div>
+            <button id="exportBtn" style="font-size:13px; color:var(--amber); font-weight:600;">Export</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Clear my data</div>
+              <div class="settings-row-desc">Removes everything stored on this device</div>
+            </div>
+            <button class="danger-btn" id="clearDataBtn">Clear</button>
+          </div>
+        </div>
+
+        <p class="settings-note">🔏 Your study data — tasks, subjects, sessions, notes — stays stored locally on this device. Nothing is uploaded to a server. This is an independent fan-made project and is not affiliated with, endorsed by, or officially connected to Stray Kids or JYP Entertainment.</p>
+
+        <div class="section-head" style="margin-top:26px;"><h2>🌷 About the Creator</h2></div>
+        <div class="creator-card">
+          <div class="creator-avatar">🌸</div>
+          <p class="creator-hi">Hiii!! I'm Tulika (aka Tuli 🌸)</p>
+          <p class="creator-bio">I made STAY ROOM as a little fan-made project for STAYs. 🐰💗</p>
+          <div class="creator-links">
+            <a href="https://youtube.com/@minberrydiary?si=9-ykiPeArmCa72M3" target="_blank" rel="noopener">📺 YouTube — @minberrydiary</a>
+            <a href="https://www.tiktok.com/@_.minberry_" target="_blank" rel="noopener">📱 TikTok — @_.minberry_</a>
+            <a href="https://www.instagram.com/changbins_big.bakery" target="_blank" rel="noopener">📸 Instagram — @changbins_big.bakery</a>
+            <a href="https://www.instagram.com/.minberry" target="_blank" rel="noopener">📸 Instagram (personal) — @.minberry</a>
+          </div>
+          <p class="creator-sign">Made with a little creativity, a lot of STAY love, and one very determined Tulika. 🌷💗</p>
+        </div>
+
+        <div class="version-tag">STAY ROOM · v1.0.0</div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ DEEP FOCUS OVERLAY ============ -->
+<div id="focusOverlay">
+  <button class="focus-exit" id="exitFocusBtn">End session ✕</button>
+  <div class="focus-subject" id="ofSubject">SUBJECT</div>
+  <div class="focus-topic" id="ofTopic">Topic</div>
+  <div class="focus-timer" id="ofTimer">45:00</div>
+  <div class="focus-bar"><div class="focus-bar-fill" id="ofBar"></div></div>
+  <div class="focus-controls">
+    <button class="focus-btn" id="ofPauseBtn">Pause</button>
+    <button class="focus-btn primary" id="ofFinishBtn">Finish early</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
