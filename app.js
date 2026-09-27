@@ -242,10 +242,34 @@ function finishFocus(completed){
 // ---------- exam countdown ----------
 function renderExamTag(){
   const tag = document.getElementById('nextExamTag');
-  if(!state.exam){ tag.textContent = 'No exam added yet'; return; }
+  if(!state.exam){ tag.textContent = '+ Add an exam'; return; }
   const days = Math.ceil((new Date(state.exam.date) - new Date()) / 86400000);
   tag.textContent = days >= 0 ? `${state.exam.label} · ${days}d left` : state.exam.label;
 }
+
+document.getElementById('nextExamTag').addEventListener('click', () => {
+  const editor = document.getElementById('examEditor');
+  const opening = editor.style.display === 'none';
+  editor.style.display = opening ? 'block' : 'none';
+  if(opening){
+    document.getElementById('examLabelInput').value = state.exam ? state.exam.label : '';
+    document.getElementById('examDateInput').value = state.exam ? state.exam.date : '';
+  }
+});
+document.getElementById('examSaveBtn').addEventListener('click', () => {
+  const label = document.getElementById('examLabelInput').value.trim();
+  const date = document.getElementById('examDateInput').value;
+  if(!label || !date){ toast('Add both a name and a date'); return; }
+  state.exam = { label, date };
+  saveState(); renderExamTag();
+  document.getElementById('examEditor').style.display = 'none';
+  toast('Exam saved 📅');
+});
+document.getElementById('examRemoveBtn').addEventListener('click', () => {
+  state.exam = null;
+  saveState(); renderExamTag();
+  document.getElementById('examEditor').style.display = 'none';
+});
 
 // ---------- export / clear ----------
 document.getElementById('exportBtn').addEventListener('click', () => {

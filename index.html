@@ -53,10 +53,21 @@
         </div>
 
         <div class="focus-card">
-          <span class="subj-tag" id="nextExamTag">No exam added yet</span>
+          <span class="subj-tag" id="nextExamTag" style="cursor:pointer;">No exam added yet</span>
           <div class="big-time" id="liveClock">--:--</div>
           <div class="sub-label">right now</div>
           <button class="btn-primary" data-goto="focus">🔒 Start a Focus Session</button>
+        </div>
+
+        <div class="exam-editor" id="examEditor" style="display:none;">
+          <span class="field-label">Exam name</span>
+          <input class="text-input" id="examLabelInput" placeholder="e.g. Chemistry Board Exam">
+          <span class="field-label" style="margin-top:12px;">Exam date</span>
+          <input class="text-input" id="examDateInput" type="date">
+          <div style="display:flex; gap:8px; margin-top:14px;">
+            <button class="btn-primary" style="margin:0;" id="examSaveBtn">Save</button>
+            <button class="focus-btn" id="examRemoveBtn">Remove</button>
+          </div>
         </div>
 
         <div class="stat-row">

@@ -135,6 +135,14 @@ main{
   margin-top: 4px;
 }
 
+.exam-editor{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+
 .focus-card{
   margin-top: 22px;
   background: linear-gradient(160deg, var(--card) 0%, var(--card-soft) 100%);
