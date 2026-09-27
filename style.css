@@ -55,6 +55,28 @@ input, select{font-family:inherit; color:inherit;}
   *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
 }
 
+/* ---------- Rotate prompt (phones only) ---------- */
+#rotatePrompt{
+  display:none;
+}
+@media (max-width: 900px) and (orientation: portrait){
+  #rotatePrompt{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:fixed; inset:0; z-index:999;
+    background: var(--bg); color: var(--text); text-align:center; padding: 40px;
+  }
+  #app{ display:none; }
+}
+#rotatePrompt .rotate-icon{
+  font-size: 40px; margin-bottom: 16px;
+  animation: rotateHint 1.8s ease-in-out infinite;
+}
+#rotatePrompt p{ font-size: 14px; color: var(--text-dim); line-height:1.6; }
+@keyframes rotateHint{
+  0%, 100%{ transform: rotate(0deg); }
+  50%{ transform: rotate(-90deg); }
+}
+
 /* ---------- App shell ---------- */
 #app{
   max-width: 1180px;
@@ -377,6 +399,45 @@ main{
 .danger-btn{
   color: var(--danger); font-size: 13px; font-weight:500;
 }
+/* ---------- Compass clock ---------- */
+.compass-wrap{
+  display:flex; justify-content:center;
+  margin: 6px 0 10px;
+}
+.compass-svg{ width: 210px; height: 210px; max-width:100%; }
+.compass-ring-outer{ fill:none; stroke: var(--border); stroke-width:2; }
+.compass-ring-inner{ fill:none; stroke: var(--border); stroke-width:1; opacity:.55; }
+.tick-major{ stroke: var(--lavender); stroke-width:1.4; }
+.tick-minor{ stroke: var(--text-faint); stroke-width:.7; }
+.hand{ stroke-linecap: round; transform-origin: 150px 150px; transition: transform .2s cubic-bezier(.4,2,.4,1); }
+.hour-hand{ stroke: var(--text); stroke-width:5; }
+.minute-hand{ stroke: var(--text); stroke-width:3.5; }
+.second-hand{ stroke: var(--amber); stroke-width:1.4; }
+.hand-pivot{ fill: var(--amber); }
+.compass-node{ cursor:pointer; }
+.compass-node .node-bg{
+  fill: var(--card); stroke: var(--border); stroke-width:1.2;
+  transition: fill .2s ease, stroke .2s ease, stroke-width .2s ease;
+}
+.compass-node.selected .node-bg{
+  stroke: var(--amber); stroke-width:2; fill: rgba(240,168,104,0.16);
+}
+.compass-node text{ pointer-events:none; }
+.buddy-quote{
+  text-align:center; font-size: 12px; color: var(--text-dim);
+  font-style: italic; min-height: 15px; margin-bottom: 8px;
+}
+
+/* ---------- Ambient sound sliders ---------- */
+.ambient-sliders{ display:flex; flex-direction:column; gap: 13px; }
+.ambient-row{
+  display:flex; align-items:center; justify-content:space-between; gap: 14px;
+  font-size: 12.5px; color: var(--text-dim);
+}
+.ambient-row input[type="range"]{
+  width: 140px; accent-color: var(--amber);
+}
+
 .creator-card{
   background: linear-gradient(160deg, var(--card) 0%, var(--card-soft) 100%);
   border: 1px solid var(--border);

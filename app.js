@@ -5,6 +5,7 @@ const defaultState = {
   name: '',
   theme: 'dark',
   stayMode: true,
+  buddyIndex: null,
   subjects: [],       // {id, name, progress}
   tasks: [],           // {id, title, subject, done}
   sessions: [],         // {date, minutes, subject}
@@ -239,6 +240,116 @@ function finishFocus(completed){
   goto('home');
 }
 
+// ---------- compass clock ----------
+const MASCOTS = [
+  { name: 'Wolf Chan', emoji: '🐺', quote: '"One task at a time — you\'ve got this."' },
+  { name: 'Leebit', emoji: '🐰', quote: '"Steady pace wins the day."' },
+  { name: 'Dwaekki', emoji: '🐷', quote: '"Let\'s go — one page, one rep."' },
+  { name: 'Jiniret', emoji: '🥟', quote: '"Small steps still count as progress."' },
+  { name: 'Han Quokka', emoji: '🐿️', quote: '"Stash this away — you\'ll need it later."' },
+  { name: 'BbokAri', emoji: '🐥', quote: '"Bright start, bright finish."' },
+  { name: 'PuppyM', emoji: '🐶', quote: '"Stay loyal to your goals today."' },
+  { name: 'FoxI.Ny', emoji: '🦊', quote: '"Sharp focus, clever moves."' }
+];
+
+function renderCompassTicks(){
+  const g = document.getElementById('compassTicks');
+  let html = '';
+  for(let i = 0; i < 60; i++){
+    const angle = i * 6;
+    const isMajor = i % 5 === 0;
+    const r1 = 140, r2 = isMajor ? 128 : 133;
+    const rad = (angle - 90) * (Math.PI / 180);
+    const x1 = 150 + r1 * Math.cos(rad), y1 = 150 + r1 * Math.sin(rad);
+    const x2 = 150 + r2 * Math.cos(rad), y2 = 150 + r2 * Math.sin(rad);
+    html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${isMajor ? 'tick-major' : 'tick-minor'}"/>`;
+  }
+  g.innerHTML = html;
+}
+
+function renderCompassNodes(){
+  const g = document.getElementById('compassNodes');
+  const radius = 116;
+  let html = '';
+  MASCOTS.forEach((m, i) => {
+    const angle = (i * 45 - 90) * (Math.PI / 180);
+    const cx = 150 + radius * Math.cos(angle);
+    const cy = 150 + radius * Math.sin(angle);
+    const selected = i === state.buddyIndex;
+    html += `
+      <g class="compass-node ${selected ? 'selected' : ''}" data-idx="${i}" transform="translate(${cx},${cy})">
+        <circle r="16" class="node-bg"/>
+        <text x="0" y="5.5" text-anchor="middle" font-size="16">${m.emoji}</text>
+      </g>`;
+  });
+  g.innerHTML = html;
+}
+
+document.getElementById('compassNodes').addEventListener('click', (e) => {
+  const node = e.target.closest('.compass-node');
+  if(!node) return;
+  state.buddyIndex = parseInt(node.dataset.idx, 10);
+  saveState();
+  renderCompassNodes();
+  renderBuddyQuote();
+});
+
+function renderBuddyQuote(){
+  const el = document.getElementById('buddyQuote');
+  if(state.buddyIndex === null){ el.textContent = 'Tap a mascot to pick your study buddy ✨'; return; }
+  const m = MASCOTS[state.buddyIndex];
+  el.textContent = `${m.emoji} ${m.name} — ${m.quote}`;
+}
+
+function updateCompassHands(){
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  const hourAngle = ((h % 12) + m / 60) * 30;
+  const minAngle = (m + s / 60) * 6;
+  const secAngle = s * 6;
+  document.getElementById('hourHand').setAttribute('transform', `rotate(${hourAngle} 150 150)`);
+  document.getElementById('minuteHand').setAttribute('transform', `rotate(${minAngle} 150 150)`);
+  document.getElementById('secondHand').setAttribute('transform', `rotate(${secAngle} 150 150)`);
+}
+setInterval(updateCompassHands, 1000);
+
+// ---------- ambient sounds (synthesized, no audio files) ----------
+let audioCtx = null, rainGain = null, spaceGain = null, cafeGain = null;
+function ensureAudio(){
+  if(audioCtx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AC();
+  const bufferSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+  function makeLayer(filterType, freq, q){
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer; src.loop = true;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = filterType; filter.frequency.value = freq;
+    if(q) filter.Q.value = q;
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0;
+    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    src.start();
+    return gain;
+  }
+  rainGain = makeLayer('bandpass', 1000);
+  spaceGain = makeLayer('lowpass', 180);
+  cafeGain = makeLayer('bandpass', 500, 0.7);
+}
+function wireAmbientSlider(id, getGain, divisor){
+  document.getElementById(id).addEventListener('input', (e) => {
+    ensureAudio();
+    getGain().gain.value = e.target.value / divisor;
+  });
+}
+wireAmbientSlider('rainVolume', () => rainGain, 300);
+wireAmbientSlider('spaceVolume', () => spaceGain, 200);
+wireAmbientSlider('cafeVolume', () => cafeGain, 250);
+
 // ---------- exam countdown ----------
 function renderExamTag(){
   const tag = document.getElementById('nextExamTag');
@@ -312,6 +423,10 @@ function renderAll(){
   renderSubjects();
   renderStats();
   renderExamTag();
+  renderCompassTicks();
+  renderCompassNodes();
+  renderBuddyQuote();
+  updateCompassHands();
 }
 renderAll();
 

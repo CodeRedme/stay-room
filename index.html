@@ -11,6 +11,11 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="dark">
+<div id="rotatePrompt">
+  <div class="rotate-icon">📱↻</div>
+  <p>STAY Room is made for landscape.<br>Rotate your device to continue 🔄</p>
+</div>
+
 <div id="app">
 
   <!-- ============ SIDE / BOTTOM NAV ============ -->
@@ -54,6 +59,23 @@
 
         <div class="focus-card">
           <span class="subj-tag" id="nextExamTag" style="cursor:pointer;">No exam added yet</span>
+
+          <div class="compass-wrap">
+            <svg id="compassSvg" viewBox="0 0 300 300" class="compass-svg" aria-hidden="true">
+              <circle class="compass-ring-outer" cx="150" cy="150" r="140"/>
+              <circle class="compass-ring-inner" cx="150" cy="150" r="128"/>
+              <g id="compassTicks"></g>
+              <g id="compassNodes"></g>
+              <g id="compassHands">
+                <line id="hourHand" class="hand hour-hand" x1="150" y1="150" x2="150" y2="98"/>
+                <line id="minuteHand" class="hand minute-hand" x1="150" y1="150" x2="150" y2="72"/>
+                <line id="secondHand" class="hand second-hand" x1="150" y1="150" x2="150" y2="60"/>
+              </g>
+              <circle cx="150" cy="150" r="4" class="hand-pivot"/>
+            </svg>
+          </div>
+          <div class="buddy-quote" id="buddyQuote">Tap a mascot to pick your study buddy ✨</div>
+
           <div class="big-time" id="liveClock">--:--</div>
           <div class="sub-label">right now</div>
           <button class="btn-primary" data-goto="focus">🔒 Start a Focus Session</button>
@@ -118,6 +140,25 @@
               <button class="chip" data-audio="own">🎧 My own music</button>
             </div>
           </div>
+
+          <div>
+            <span class="field-label">Ambient sounds</span>
+            <div class="ambient-sliders">
+              <div class="ambient-row">
+                <span>🌧️ Gentle rain</span>
+                <input type="range" id="rainVolume" min="0" max="100" value="0">
+              </div>
+              <div class="ambient-row">
+                <span>✨ Deep space hum</span>
+                <input type="range" id="spaceVolume" min="0" max="100" value="0">
+              </div>
+              <div class="ambient-row">
+                <span>☕ Café ambiance</span>
+                <input type="range" id="cafeVolume" min="0" max="100" value="0">
+              </div>
+            </div>
+          </div>
+
           <button class="btn-primary" id="beginFocusBtn">Begin Session</button>
         </div>
       </section>
