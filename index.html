@@ -65,11 +65,27 @@
               <circle class="compass-ring-outer" cx="150" cy="150" r="140"/>
               <circle class="compass-ring-inner" cx="150" cy="150" r="128"/>
               <g id="compassTicks"></g>
+
+              <!-- dashed starry orbit -->
+              <circle class="compass-orbit" cx="150" cy="150" r="100"/>
+              <g class="orbit-stars">
+                <text x="184.2" y="59" class="orbit-star amber">✦</text>
+                <text x="244.0" y="118.8" class="orbit-star lav">✦</text>
+                <text x="200" y="239.6" class="orbit-star amber">✦</text>
+                <text x="73.4" y="217.3" class="orbit-star lav">✦</text>
+                <text x="56.0" y="118.8" class="orbit-star amber">✦</text>
+              </g>
+
+              <!-- central star core -->
+              <path class="compass-star" d="M150,116 L155.4,137.1 L174.0,126.0 L162.9,144.6 L184,150 L162.9,155.4 L174.0,174.0 L155.4,162.9 L150,184 L144.6,162.9 L126.0,174.0 L137.1,155.4 L116,150 L137.1,144.6 L126.0,126.0 L144.6,137.1 Z"/>
+              <circle class="compass-star-core" cx="150" cy="150" r="13"/>
+
               <g id="compassNodes"></g>
+
               <g id="compassHands">
-                <line id="hourHand" class="hand hour-hand" x1="150" y1="150" x2="150" y2="98"/>
-                <line id="minuteHand" class="hand minute-hand" x1="150" y1="150" x2="150" y2="72"/>
-                <line id="secondHand" class="hand second-hand" x1="150" y1="150" x2="150" y2="60"/>
+                <g id="hourHand" class="hand hour-hand"><path d="M150,150 L144.5,129 L150,96 L155.5,129 Z"/></g>
+                <g id="minuteHand" class="hand minute-hand"><path d="M150,150 L146.5,118 L150,66 L153.5,118 Z"/></g>
+                <line id="secondHand" class="hand second-hand" x1="150" y1="150" x2="150" y2="58"/>
               </g>
               <circle cx="150" cy="150" r="4" class="hand-pivot"/>
             </svg>

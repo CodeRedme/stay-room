@@ -270,15 +270,17 @@ function renderCompassTicks(){
 function renderCompassNodes(){
   const g = document.getElementById('compassNodes');
   const radius = 116;
+  const accentCycle = ['var(--amber)', 'var(--lavender)', 'var(--pink)', 'var(--green)'];
   let html = '';
   MASCOTS.forEach((m, i) => {
     const angle = (i * 45 - 90) * (Math.PI / 180);
     const cx = 150 + radius * Math.cos(angle);
     const cy = 150 + radius * Math.sin(angle);
     const selected = i === state.buddyIndex;
+    const accent = accentCycle[i % accentCycle.length];
     html += `
       <g class="compass-node ${selected ? 'selected' : ''}" data-idx="${i}" transform="translate(${cx},${cy})">
-        <circle r="16" class="node-bg"/>
+        <circle r="16" class="node-bg" style="fill:${accent}; opacity:${selected ? 0.28 : 0.16};"/>
         <text x="0" y="5.5" text-anchor="middle" font-size="16">${m.emoji}</text>
       </g>`;
   });

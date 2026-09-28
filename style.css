@@ -407,12 +407,18 @@ main{
 .compass-svg{ width: 210px; height: 210px; max-width:100%; }
 .compass-ring-outer{ fill:none; stroke: var(--border); stroke-width:2; }
 .compass-ring-inner{ fill:none; stroke: var(--border); stroke-width:1; opacity:.55; }
+.compass-orbit{ fill:none; stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 6; opacity: .45; }
+.orbit-star{ font-size: 10px; opacity: .75; }
+.orbit-star.amber{ fill: var(--amber); }
+.orbit-star.lav{ fill: var(--lavender); }
+.compass-star{ fill: var(--amber-dim); opacity: .3; }
+.compass-star-core{ fill: var(--bg-elevated); stroke: var(--border); stroke-width: 1; }
 .tick-major{ stroke: var(--lavender); stroke-width:1.4; }
 .tick-minor{ stroke: var(--text-faint); stroke-width:.7; }
-.hand{ stroke-linecap: round; transform-origin: 150px 150px; transition: transform .2s cubic-bezier(.4,2,.4,1); }
-.hour-hand{ stroke: var(--text); stroke-width:5; }
-.minute-hand{ stroke: var(--text); stroke-width:3.5; }
-.second-hand{ stroke: var(--amber); stroke-width:1.4; }
+.hand{ transform-origin: 150px 150px; transition: transform .2s cubic-bezier(.4,2,.4,1); }
+.hour-hand path{ fill: var(--text); }
+.minute-hand path{ fill: var(--text); }
+.second-hand{ stroke: var(--amber); stroke-width:1.4; stroke-linecap: round; }
 .hand-pivot{ fill: var(--amber); }
 .compass-node{ cursor:pointer; }
 .compass-node .node-bg{
