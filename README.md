@@ -12,6 +12,10 @@ This is an independent, fan-made project inspired by the global STAY community. 
 ## ✨ What's in v1.0.0
 
 - **🏠 Home** — live clock, a greeting that changes with the time of day, today's stats, an exam countdown tag, and a quick task list
+- **🗓️ Planner** — plan just today, in four editable parts (Morning, Noon, Evening, Night). Add, edit, delete, reorder and tick off tasks; mark them short/medium/long; set your energy level or a rest day; add revision sessions and assignments with deadlines
+- **↻ Plan Again, Not Start Over** — didn't finish a part of the day? Move the leftovers to another part, another date, or leave them in Pending. No red 0%, no guilt
+- **📔 Diary + reflection** — mood, what happened, one thing you're grateful for, what to improve tomorrow
+- **🌱 Gentle progress** — tasks done, a 7-day consistency view, and rest days that never count as misses
 - **🔒 Focus Room** — pick a subject, an optional topic/goal, a duration, and a study-audio vibe (silent / loud study / your own music), then drop into **Deep Focus**: subject, timer, and a progress bar, nothing else. The timer runs on real timestamps, so it stays accurate even if you switch tabs
 - **📚 Subjects** — add whatever you're studying, in your own words — no hardcoded subject list, no assumed exam board
 - **⚙️ Settings** — toggle **⭐ STAY Mode** vs **🌎 Universal Mode**, switch light/dark, set your name, export a backup of your data, or clear it entirely
@@ -42,6 +46,8 @@ All files are flat (no subfolders) so they can be uploaded directly through GitH
 3. Done — it's live, and installable from the browser's "Add to Home Screen" / install prompt.
 
 ## 🔄 Version
+
+**v1.3.0** — Planner, Plan Again, diary, energy planner, deadlines, gentle progress, compass clock, ambient sounds, landscape.
 
 **v1.0.0** — foundation release: Home, Focus Room + Deep Focus, Subjects, Settings, STAY/Universal Mode, PWA install, local-first data.
 

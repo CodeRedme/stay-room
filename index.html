@@ -24,6 +24,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H10v-5.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20h3.5a1 1 0 0 0 1-1v-9"/></svg>
       <span>Home</span>
     </button>
+    <button class="nav-item" data-view="planner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>
+      <span>Planner</span>
+    </button>
     <button class="nav-item" data-view="focus">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l2.6 2.6"/></svg>
       <span>Focus</span>
@@ -116,7 +120,7 @@
 
         <div class="section-head">
           <h2>Today's tasks</h2>
-          <button data-goto="subjects">Manage</button>
+          <button data-goto="planner">Plan day</button>
         </div>
         <div id="taskList"></div>
         <div style="display:flex; gap:8px; margin-top:4px;">
@@ -189,6 +193,79 @@
         </div>
 
         <div id="subjectList"></div>
+      </section>
+
+      <!-- ============ PLANNER VIEW ============ -->
+      <section class="view" id="view-planner">
+        <div class="greeting"><h1>Planner</h1><p>Plan just today, in four easy parts. If the day changes, plan again, not start over.</p></div>
+
+        <div class="date-bar">
+          <button class="icon-btn" id="datePrev" aria-label="Previous day">‹</button>
+          <input type="date" class="text-input date-input" id="dateInput">
+          <button class="icon-btn" id="dateNext" aria-label="Next day">›</button>
+          <button class="chip" id="dateToday">Today</button>
+        </div>
+        <div class="date-line" id="dateLine"></div>
+
+        <div class="card-lite">
+          <span class="field-label">Energy today</span>
+          <div class="chip-row" id="energyChips">
+            <button class="chip" data-energy="low">🌱 Low</button>
+            <button class="chip" data-energy="medium">⚡ Medium</button>
+            <button class="chip" data-energy="high">🔥 High</button>
+            <button class="chip" id="restToggle">🛌 Rest day</button>
+          </div>
+          <div class="energy-note" id="energyNote"></div>
+        </div>
+
+        <div class="card-lite">
+          <span class="field-label">Add to your plan</span>
+          <input class="text-input" id="planTitle" placeholder="e.g. Revise Electrostatics">
+          <div class="composer-row">
+            <select class="text-input" id="planSection" aria-label="Part of the day"></select>
+            <select class="text-input" id="planSize" aria-label="Task length">
+              <option value="short">Short · 15m</option>
+              <option value="medium" selected>Medium · 30m</option>
+              <option value="long">Long · 1h</option>
+            </select>
+          </div>
+          <div class="composer-row">
+            <select class="text-input" id="planKind" aria-label="Type">
+              <option value="task">Task</option>
+              <option value="revision">Revision</option>
+              <option value="assignment">Assignment</option>
+            </select>
+            <select class="text-input" id="planSubject" aria-label="Subject"></select>
+          </div>
+          <div id="planDeadlineRow" style="display:none; margin-top:8px;">
+            <span class="field-label">Deadline</span>
+            <input type="date" class="text-input" id="planDeadline">
+          </div>
+          <button class="btn-primary" id="planAddBtn" style="margin-top:12px;">Add to plan</button>
+        </div>
+
+        <div id="sectionList" style="margin-top:14px;"></div>
+
+        <div class="section-head"><h2>📌 Pending</h2></div>
+        <div id="pendingList"></div>
+
+        <div class="section-head"><h2>📅 Deadlines</h2></div>
+        <div id="deadlineList"></div>
+
+        <div class="section-head"><h2>📔 Diary and reflection</h2></div>
+        <div class="card-lite">
+          <span class="field-label">How was today?</span>
+          <div class="mood-row" id="moodRow"></div>
+          <span class="field-label" style="margin-top:14px;">What happened today</span>
+          <textarea class="text-input diary-text" id="diaryHappened" rows="3" placeholder="A few lines is plenty…"></textarea>
+          <span class="field-label" style="margin-top:12px;">One thing I'm grateful for</span>
+          <textarea class="text-input diary-text" id="diaryGrateful" rows="2"></textarea>
+          <span class="field-label" style="margin-top:12px;">What I'd like to improve tomorrow</span>
+          <textarea class="text-input diary-text" id="diaryImprove" rows="2"></textarea>
+        </div>
+
+        <div class="section-head"><h2>🌱 Gentle progress</h2></div>
+        <div class="card-lite" id="progressCard"></div>
       </section>
 
       <!-- ============ SETTINGS VIEW ============ -->
@@ -272,6 +349,63 @@
   <div class="focus-controls">
     <button class="focus-btn" id="ofPauseBtn">Pause</button>
     <button class="focus-btn primary" id="ofFinishBtn">Finish early</button>
+  </div>
+</div>
+
+<!-- ============ SHEETS ============ -->
+<div class="sheet-backdrop" id="moveSheet">
+  <div class="sheet">
+    <div class="sheet-title" id="moveTitle">Plan again</div>
+    <p class="sheet-sub">Where should it go? The day keeps going. ✨</p>
+    <div id="moveOptions"></div>
+    <div class="move-date">
+      <input type="date" class="text-input" id="moveDate">
+      <button class="sheet-option" id="moveDateBtn" style="margin:0; width:auto; white-space:nowrap;">📅 Another day</button>
+    </div>
+    <button class="sheet-option" id="movePendingBtn">📌 Leave in pending</button>
+    <button class="sheet-cancel" data-close-sheet="moveSheet">Cancel</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="editTaskSheet">
+  <div class="sheet">
+    <div class="sheet-title">Edit task</div>
+    <input class="text-input" id="etTitle" placeholder="Task name">
+    <div class="composer-row">
+      <select class="text-input" id="etSize">
+        <option value="short">Short · 15m</option>
+        <option value="medium">Medium · 30m</option>
+        <option value="long">Long · 1h</option>
+      </select>
+      <select class="text-input" id="etKind">
+        <option value="task">Task</option>
+        <option value="revision">Revision</option>
+        <option value="assignment">Assignment</option>
+      </select>
+    </div>
+    <div class="composer-row"><select class="text-input" id="etSubject"></select></div>
+    <span class="field-label" style="margin-top:10px;">Deadline (optional)</span>
+    <input type="date" class="text-input" id="etDeadline">
+    <button class="btn-primary" id="etSave">Save</button>
+    <button class="sheet-cancel" data-close-sheet="editTaskSheet">Cancel</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="editSectionSheet">
+  <div class="sheet">
+    <div class="sheet-title">Edit this part of the day</div>
+    <p class="sheet-sub">Wake up late? Rename it and shift the start time. It's your day.</p>
+    <div class="composer-row">
+      <input class="text-input" id="esEmoji" maxlength="4" style="max-width:70px; text-align:center;" placeholder="☀️">
+      <input class="text-input" id="esName" placeholder="Name">
+    </div>
+    <span class="field-label" style="margin-top:10px;">Ideas for this part</span>
+    <input class="text-input" id="esHint" placeholder="Wake up · Breakfast · Study">
+    <span class="field-label" style="margin-top:10px;">Starts around (hour, 0 to 23)</span>
+    <input class="text-input" id="esStart" type="number" min="0" max="23">
+    <button class="btn-primary" id="esSave">Save</button>
+    <button class="sheet-cancel" id="esReset">Reset all four to defaults</button>
+    <button class="sheet-cancel" data-close-sheet="editSectionSheet">Cancel</button>
   </div>
 </div>
 
