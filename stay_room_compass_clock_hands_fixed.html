@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAY Study Room - Emoji Compass Clock & Pomodoro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Patrick Hand, Quicksand, Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Quicksand:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom Styling for SKZOO Celestial Aesthetics */
+        body {
+            background-color: #120e16;
+            color: #f1f1f6;
+            font-family: 'Quicksand', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-doodle {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        /* Keep the compass SVG and its clock hands constrained to the dial. */
+        #skzCompassSvg { display: block; width: 100%; height: 100%; overflow: hidden; }
+        #clockHandsGroup line { vector-effect: non-scaling-stroke; }
+
+        /* Glassmorphism containers */
+        .glass-card {
+            background: rgba(30, 22, 38, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.25rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Neon Glow Effects */
+        .glow-pink {
+            filter: drop-shadow(0 0 8px rgba(255, 110, 199, 0.6));
+        }
+
+        .glow-yellow {
+            filter: drop-shadow(0 0 8px rgba(255, 217, 102, 0.6));
+        }
+
+        .glow-cyan {
+            filter: drop-shadow(0 0 8px rgba(102, 224, 255, 0.6));
+        }
+
+        .glow-purple {
+            filter: drop-shadow(0 0 8px rgba(186, 110, 255, 0.6));
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(20, 15, 25, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 182, 217, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 182, 217, 0.6);
+        }
+
+        /* Pulse and Twinkle Animations */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 0.9; transform: scale(1.1); }
+        }
+
+        .star-twinkle {
+            animation: twinkle var(--duration, 3s) infinite ease-in-out var(--delay, 0s);
+        }
+
+        @keyframes compassRotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .slow-spin {
+            animation: compassRotateSlow 120s linear infinite;
+            transform-origin: center;
+        }
+
+        /* Custom checkbox radio styling */
+        .task-checkbox:checked + label {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between selection:bg-pink-500/30 selection:text-pink-200">
+
+    <!-- Background Starry Canvas -->
+    <div id="starfield" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Header / Navigation Bar -->
+    <header class="relative z-10 w-full px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/5 bg-black/20 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
+                <i data-lucide="compass" class="w-6 h-6 animate-spin-slow"></i>
+            </div>
+            <div>
+                <h1 class="font-doodle text-2xl font-bold tracking-wider text-pink-200 flex items-center gap-2">
+                    STAY STUDY ROOM <span class="text-xs px-2 py-0.5 rounded-full bg-pink-500/20 border border-pink-400/30 text-pink-300">SKZ ★ 8th</span>
+                </h1>
+                <p class="text-xs text-purple-300/70 font-light">Focus with your eight SKZOO emoji buddies</p>
+            </div>
+        </div>
+
+        <!-- Mode Toggle & Quick Stats -->
+        <div class="flex items-center gap-3">
+            <div class="flex bg-black/40 p-1 rounded-xl border border-white/10">
+                <button id="modeClockBtn" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-pink-500/30 text-pink-200 border border-pink-400/30 shadow-sm">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i> Clock Mode
+                </button>
+                <button id="modeTimerBtn" class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-gray-400 hover:text-white">
+                    <i data-lucide="timer" class="w-3.5 h-3.5"></i> Pomodoro Mode
+                </button>
+            </div>
+
+            <!-- Sound Toggle Button -->
+            <button id="audioToggleBtn" class="p-2.5 rounded-xl bg-purple-900/30 border border-purple-500/20 text-purple-300 hover:text-white hover:bg-purple-800/40 transition-all" title="Ambient Sound Controller">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid Layout -->
+    <main class="relative z-10 max-w-7xl mx-auto w-full px-4 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+
+        <!-- Left Column: SKZOO Buddy Selector & Ambient Soundscape -->
+        <section class="lg:col-span-3 space-y-5 order-2 lg:order-1">
+            
+            <!-- SKZOO Study Partner Selector Card -->
+            <div class="glass-card p-5">
+                <h2 class="font-doodle text-xl text-pink-300 mb-3 flex items-center justify-between">
+                    <span>Study Buddy</span>
+                    <span id="activeBuddyName" class="text-xs font-sans text-purple-200 bg-purple-500/20 px-2 py-0.5 rounded-full border border-purple-400/30">Wolf Chan</span>
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">Choose a buddy emoji to keep you company during focus time!</p>
+                
+                <div class="grid grid-cols-4 gap-2.5" id="skzooSelectorGrid">
+                    <!-- Dynamic Member Buttons inserted here -->
+                </div>
+
+                <div id="buddyQuoteBox" class="mt-4 p-3 rounded-lg bg-pink-950/20 border border-pink-500/20 text-xs italic text-pink-200/90 text-center font-doodle text-sm">
+                    "Let's work hard together today STAY! You got this! ★"
+                </div>
+            </div>
+
+            <!-- Ambient Soundscapes Card -->
+            <div class="glass-card p-5">
+                <h2 class="font-doodle text-xl text-purple-300 mb-3 flex items-center gap-2">
+                    <i data-lucide="headphones" class="w-4 h-4"></i> Cosmic Sounds
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-2 text-gray-300">
+                            <i data-lucide="cloud-rain" class="w-3.5 h-3.5 text-blue-400"></i> Gentle Rain
+                        </span>
+                        <input type="range" id="rainVolume" min="0" max="100" value="0" class="w-24 accent-pink-400 bg-purple-950 rounded-lg cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-2 text-gray-300">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-400"></i> Deep Space Hum
+                        </span>
+                        <input type="range" id="spaceVolume" min="0" max="100" value="0" class="w-24 accent-yellow-400 bg-purple-950 rounded-lg cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-2 text-gray-300">
+                            <i data-lucide="coffee" class="w-3.5 h-3.5 text-amber-400"></i> Cafe Ambiance
+                        </span>
+                        <input type="range" id="cafeVolume" min="0" max="100" value="0" class="w-24 accent-amber-400 bg-purple-950 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Column: Visual Celestial Compass & Main Timer/Clock Canvas -->
+        <section class="lg:col-span-6 flex flex-col items-center justify-center order-1 lg:order-2 py-2">
+            
+            <div class="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
+                <!-- Outer Aesthetic Ambient Glow -->
+                <div class="absolute inset-4 rounded-full bg-gradient-to-tr from-pink-600/10 via-purple-600/10 to-blue-600/10 blur-3xl -z-10"></div>
+
+                <!-- SVG Celestial Compass Clock Artwork -->
+                <svg id="skzCompassSvg" viewBox="0 0 600 600" class="w-full h-full drop-shadow-2xl select-none">
+                    <defs>
+                        <!-- Radial Outer Glow -->
+                        <radialGradient id="compassBg" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#1b1322" />
+                            <stop offset="85%" stop-color="#140e19" />
+                            <stop offset="100%" stop-color="#0c0810" />
+                        </radialGradient>
+
+                        <!-- Central Star Gradient -->
+                        <linearGradient id="starGradTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff9ebb" />
+                            <stop offset="100%" stop-color="#e8618c" />
+                        </linearGradient>
+
+                        <linearGradient id="starGradPink" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#ffd1e3" />
+                            <stop offset="100%" stop-color="#f278a1" />
+                        </linearGradient>
+
+                        <!-- Rainbow Slice Gradients for Star Center -->
+                        <linearGradient id="gYellow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe678"/><stop offset="100%" stop-color="#f5ab16"/></linearGradient>
+                        <linearGradient id="gGreen" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#80f5a9"/><stop offset="100%" stop-color="#24b860"/></linearGradient>
+                        <linearGradient id="gCyan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7ee8fa"/><stop offset="100%" stop-color="#1ba2d4"/></linearGradient>
+                        <linearGradient id="gPurple" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d6a3ff"/><stop offset="100%" stop-color="#8b3dff"/></linearGradient>
+
+                        <!-- Filter for Soft Glow -->
+                        <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+
+                    <!-- Background Base -->
+                    <circle cx="300" cy="300" r="285" fill="url(#compassBg)" stroke="#2b1e36" stroke-width="2"/>
+
+                    <!-- Circular Compass Outer Ring Double Line -->
+                    <circle cx="300" cy="300" r="275" fill="none" stroke="#f2c8ec" stroke-width="1.5" opacity="0.8"/>
+                    <circle cx="300" cy="300" r="263" fill="none" stroke="#f2c8ec" stroke-width="1" opacity="0.6"/>
+
+                    <!-- Ticks Around Outer Ring -->
+                    <g id="compassTicks" opacity="0.7"></g>
+
+                    <!-- Pomodoro Timer Radial Progress Arc Overlay -->
+                    <circle id="timerProgressArc" cx="300" cy="300" r="269" fill="none" stroke="#ff7ab8" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="1690" stroke-dashoffset="0" transform="rotate(-90 300 300)" opacity="0.9" class="transition-all duration-300"/>
+
+                    <!-- Outer Curved Text Pathway -->
+                    <path id="textPathTop" d="M 60,300 A 240,240 0 0,1 540,300" fill="none" />
+                    <text font-family="'Patrick Hand', cursive" font-size="18" fill="#fce4f4" letter-spacing="4" text-anchor="middle">
+                        <textPath href="#textPathTop" startOffset="50%">
+                            STRAY KIDS ★ 8TH ★ ANNIVERSARY
+                        </textPath>
+                    </text>
+
+                    <path id="textPathBottom" d="M 540,300 A 240,240 0 0,1 60,300" fill="none" />
+                    <text font-family="'Patrick Hand', cursive" font-size="16" fill="#cca3c7" letter-spacing="3" text-anchor="middle">
+                        <textPath href="#textPathBottom" startOffset="50%">
+                            smolsungies ★ STAY STUDY ROOM
+                        </textPath>
+                    </text>
+
+                    <!-- Colorful Triangular Markers Around Edge (Replicating Image Palette) -->
+                    <!-- Top (Pink) -->
+                    <polygon points="300,23 292,37 308,37" fill="#80a2ff" />
+                    <polygon points="300,577 292,563 308,563" fill="#ffaa54" />
+                    <!-- Left / Right Major Points -->
+                    <polygon points="23,300 37,292 37,308" fill="#7ee8fa" />
+                    <polygon points="577,300 563,292 563,308" fill="#ff7ba0" />
+                    <!-- Intermediary Colorful Triangles -->
+                    <polygon points="495,105 482,115 492,126" fill="#be7eff" />
+                    <polygon points="105,105 108,126 118,115" fill="#5fe0ff" />
+                    <polygon points="495,495 492,474 482,485" fill="#ff7f6e" />
+                    <polygon points="105,495 118,485 108,474" fill="#a0f06a" />
+
+                    <!-- Major Star Cardinal Points (Top, Bottom, Left, Right Large Stars on Rim) -->
+                    <!-- Top Cardinal Star -->
+                    <g transform="translate(300, 38) scale(0.75)" fill="none" stroke="#fce4f4" stroke-width="1.5">
+                        <path d="M0,-25 L6,-6 L25,0 L6,6 L0,25 L-6,6 L-25,0 L-6,-6 Z" fill="#20152b"/>
+                        <line x1="0" y1="-25" x2="0" y2="25"/>
+                        <line x1="-25" y1="0" x2="25" y2="0"/>
+                    </g>
+                    <!-- Bottom Cardinal Star -->
+                    <g transform="translate(300, 562) scale(0.75)" fill="none" stroke="#fce4f4" stroke-width="1.5">
+                        <path d="M0,-25 L6,-6 L25,0 L6,6 L0,25 L-6,6 L-25,0 L-6,-6 Z" fill="#20152b"/>
+                        <line x1="0" y1="-25" x2="0" y2="25"/>
+                        <line x1="-25" y1="0" x2="25" y2="0"/>
+                    </g>
+                    <!-- Left Cardinal Star -->
+                    <g transform="translate(38, 300) scale(0.65)" fill="none" stroke="#fce4f4" stroke-width="1.5">
+                        <path d="M0,-25 L6,-6 L25,0 L6,6 L0,25 L-6,6 L-25,0 L-6,-6 Z" fill="#20152b"/>
+                    </g>
+                    <!-- Right Cardinal Star -->
+                    <g transform="translate(562, 300) scale(0.65)" fill="none" stroke="#fce4f4" stroke-width="1.5">
+                        <path d="M0,-25 L6,-6 L25,0 L6,6 L0,25 L-6,6 L-25,0 L-6,-6 Z" fill="#20152b"/>
+                    </g>
+
+                    <!-- Constellation Dotted Lines connecting SKZOO positions -->
+                    <g id="constellationLines" stroke="#e1b3ff" stroke-width="1.2" stroke-dasharray="3,4" opacity="0.5"></g>
+
+                    <!-- Simple central hub: selected representative emoji, no star artwork -->
+                    <circle cx="300" cy="300" r="30" fill="#1b1224" stroke="#ffb3d9" stroke-width="2"/>
+                    <text id="centerCharacterEmoji" x="300" y="309" text-anchor="middle"
+                          font-family="sans-serif" font-size="25">🐺</text>
+
+                    <!-- Eight representative emoji nodes around the compass ring -->
+                    <g id="skzooNodesGroup"></g>
+
+                    <!-- Real analog clock hands: all rotate around the exact center -->
+                    <g id="clockHandsGroup" class="transition-opacity duration-300 opacity-100" pointer-events="none">
+                        <!-- Short hour hand -->
+                        <line id="hourHand" x1="300" y1="300" x2="300" y2="242" stroke="#ffb3d9" stroke-width="7" stroke-linecap="round" filter="url(#glowEffect)"/>
+                        <!-- Longer minute hand -->
+                        <line id="minuteHand" x1="300" y1="300" x2="300" y2="205" stroke="#7ee8fa" stroke-width="4.5" stroke-linecap="round" filter="url(#glowEffect)"/>
+                        <!-- Thin second hand -->
+                        <line id="secondHand" x1="300" y1="316" x2="300" y2="185" stroke="#ffe678" stroke-width="2" stroke-linecap="round"/>
+                        <!-- Center cap drawn last so the hands visibly meet -->
+                        <circle cx="300" cy="300" r="7" fill="#fff1f8" stroke="#20152b" stroke-width="2"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Digital Time / Timer Control Card Overlay Below Compass -->
+            <div class="mt-4 w-full max-w-md glass-card p-4 text-center relative z-20">
+                
+                <!-- Large Digital Display -->
+                <div id="mainDigitalDisplay" class="text-4xl sm:text-5xl font-bold font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-200 to-cyan-300 drop-shadow">
+                    12:00:00 PM
+                </div>
+                <div id="subDisplayLabel" class="text-xs text-purple-300/80 mt-1 uppercase tracking-widest">
+                    Your Local Time
+                </div>
+
+                <!-- Pomodoro Control Buttons (Hidden when in Clock Mode) -->
+                <div id="pomodoroControls" class="hidden mt-4 space-y-3">
+                    <div class="flex items-center justify-center gap-3">
+                        <button id="startTimerBtn" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold text-sm shadow-lg shadow-pink-500/25 transition-all flex items-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i> Start Focus
+                        </button>
+                        <button id="pauseTimerBtn" class="px-4 py-2 rounded-xl bg-purple-900/40 hover:bg-purple-800/50 text-purple-200 border border-purple-500/30 font-semibold text-sm transition-all hidden">
+                            <i data-lucide="pause" class="w-4 h-4"></i> Pause
+                        </button>
+                        <button id="resetTimerBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all" title="Reset Timer">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Preset Mode Switches -->
+                    <div class="flex justify-center gap-2 pt-2 border-t border-white/5 text-xs">
+                        <button id="preset25Btn" class="px-3 py-1 rounded-lg bg-pink-500/20 border border-pink-400/30 text-pink-300">25m Study</button>
+                        <button id="preset50Btn" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white">50m Study</button>
+                        <button id="preset5Btn" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white">5m Break</button>
+                        <button id="preset15Btn" class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white">15m Break</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: To-Do List & Study Statistics -->
+        <section class="lg:col-span-3 space-y-5 order-3">
+            
+            <!-- STAY Focus Task List -->
+            <div class="glass-card p-5 flex flex-col h-[380px]">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-doodle text-xl text-pink-300 flex items-center gap-2">
+                        <i data-lucide="check-square" class="w-4 h-4"></i> Study Goals
+                    </h2>
+                    <span id="taskCounter" class="text-xs text-purple-300/70">0/0 completed</span>
+                </div>
+
+                <!-- New Task Input Form -->
+                <form id="addTaskForm" class="flex gap-2 mb-3">
+                    <input type="text" id="taskInput" placeholder="Add study goal..." required
+                        class="flex-1 px-3 py-1.5 rounded-lg bg-black/30 border border-white/10 text-xs text-purple-100 placeholder-purple-300/40 focus:outline-none focus:border-pink-400/60">
+                    <button type="submit" class="px-3 py-1.5 bg-pink-500/30 hover:bg-pink-500/50 border border-pink-400/40 text-pink-200 rounded-lg text-xs font-semibold transition-all">
+                        +
+                    </button>
+                </form>
+
+                <!-- Scrollable Task Items -->
+                <div id="taskList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <!-- Dynamic tasks will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Focus Session Stats Card -->
+            <div class="glass-card p-5">
+                <h2 class="font-doodle text-xl text-yellow-300 mb-3 flex items-center gap-2">
+                    <i data-lucide="award" class="w-4 h-4"></i> Today's STAY Stats
+                </h2>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="p-2.5 rounded-xl bg-purple-950/30 border border-purple-500/20">
+                        <div id="totalStudyTime" class="text-xl font-bold text-pink-300">0m</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Total Focus</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-purple-950/30 border border-purple-500/20">
+                        <div id="completedSessions" class="text-xl font-bold text-cyan-300">0</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wider">Sessions</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer Banner -->
+    <footer class="relative z-10 w-full py-3 text-center text-xs text-purple-300/50 border-t border-white/5 bg-black/30">
+        Made with ❤️ for STAYs • STAY Emoji Compass Study Room • <span id="currentYear">2026</span>
+    </footer>
+
+    <!-- Application Logic & Interactive Script -->
+    <script>
+        // SKZOO Characters Dataset with SVG icons and artwork colors from prompt
+        const SKZOO_MEMBERS = [
+            {
+                id: 'wolfchan',
+                emoji: '🐺',
+                name: 'Wolf Chan',
+                member: 'Bang Chan',
+                color: '#ff7ba0', // Coral Pink
+                quote: '"You\'re doing amazing STAY! I\'m always proud of your effort! ★"',
+                // Hand-drawn doodle style SVG avatar definition
+                svg: `<path d="M6 18 C3 14 3 8 8 5 C12 2 16 2 20 5 C25 8 25 14 22 18 C20 22 8 22 6 18 Z" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M5 7 L1 1 L8 4" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M23 7 L27 1 L20 4" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <circle cx="10" cy="11" r="1.5" fill="#ffffff"/>
+                      <circle cx="18" cy="11" r="1.5" fill="#ffffff"/>
+                      <path d="M12 15 Q14 17 16 15" fill="none" stroke="#ffffff" stroke-width="1.5"/>`
+            },
+            {
+                id: 'leebit',
+                emoji: '🐰',
+                name: 'Leebit',
+                member: 'Lee Know',
+                color: '#80a2ff', // Purple Blue
+                quote: '"Focus now, delicious snacks later! Keep going STAY! 🐰"',
+                svg: `<ellipse cx="14" cy="16" rx="9" ry="8" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M8 9 C6 1 10 0 11 8" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M20 9 C22 1 18 0 17 8" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <circle cx="10" cy="14" r="1.5" fill="#ffffff"/>
+                      <circle cx="18" cy="14" r="1.5" fill="#ffffff"/>
+                      <path d="M12 18 Q14 16 16 18" fill="none" stroke="#ffffff" stroke-width="1.5"/>`
+            },
+            {
+                id: 'dwaekki',
+                emoji: '🐷🐇',
+                name: 'Dwaekki',
+                member: 'Changbin',
+                color: '#be7eff', // Pastel Violet
+                quote: '"ONE TWO THREE! Work out your brain power! JUTDAE! 💪"',
+                svg: `<ellipse cx="14" cy="16" rx="9" ry="8" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M7 10 Q4 2 9 4 Q11 8 10 10" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M21 10 Q24 2 19 4 Q17 8 18 10" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <ellipse cx="14" cy="17" rx="3" ry="2" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+                      <circle cx="9" cy="13" r="1.5" fill="#ffffff"/>
+                      <circle cx="19" cy="13" r="1.5" fill="#ffffff"/>`
+            },
+            {
+                id: 'jiniret',
+                emoji: '🥟',
+                name: 'Jiniret',
+                member: 'Hyunjin',
+                color: '#7ee8fa', // Pastel Cyan
+                quote: '"Creativity takes time. Take a deep breath and paint your path. ✨"',
+                svg: `<path d="M7 18 C4 13 5 7 10 5 C14 3 18 4 21 8 C24 13 22 19 16 21 C11 22 8 20 7 18 Z" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M6 7 L2 2 L9 4" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <path d="M21 8 L26 3 L19 5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <circle cx="11" cy="12" r="1.5" fill="#ffffff"/>
+                      <circle cx="18" cy="12" r="1.5" fill="#ffffff"/>
+                      <path d="M13 16 Q15 18 17 16" fill="none" stroke="#ffffff" stroke-width="1.5"/>`
+            },
+            {
+                id: 'hanquokka',
+                emoji: '🐿️',
+                name: 'HAN QUOKKA',
+                member: 'HAN',
+                color: '#ffaa54', // Pastel Orange
+                quote: '"Music or studying, do it with passion! You\'re a genius STAY! 🐿️"',
+                svg: `<circle cx="14" cy="15" r="9" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <circle cx="5" cy="9" r="3" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <circle cx="23" cy="9" r="3" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <ellipse cx="14" cy="16" rx="2.5" ry="1.8" fill="#ffffff"/>
+                      <circle cx="10" cy="12" r="1.5" fill="#ffffff"/>
+                      <circle cx="18" cy="12" r="1.5" fill="#ffffff"/>`
+            },
+            {
+                id: 'bbokari',
+                emoji: '🐥',
+                name: 'BbokAri',
+                member: 'Felix',
+                color: '#ffe678', // Sunshine Yellow
+                quote: '"Your hard work will shine like sunshine bright stars! Sunshine stay! 🐥"',
+                svg: `<circle cx="14" cy="15" r="9" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M11 7 L14 2 L17 7" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <polygon points="12,15 16,15 14,18" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+                      <circle cx="9" cy="12" r="1.5" fill="#ffffff"/>
+                      <circle cx="19" cy="12" r="1.5" fill="#ffffff"/>`
+            },
+            {
+                id: 'puppym',
+                emoji: '🐶',
+                name: 'PuppyM',
+                member: 'Seungmin',
+                color: '#5fe0ff', // Sky Blue
+                quote: '"Consistency is the secret to success. One step at a time! 🐶"',
+                svg: `<circle cx="14" cy="15" r="8.5" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M6 10 C2 10 2 17 6 18" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M22 10 C26 10 26 17 22 18" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <ellipse cx="14" cy="16" rx="2" ry="1.5" fill="#ffffff"/>
+                      <circle cx="10" cy="13" r="1.5" fill="#ffffff"/>
+                      <circle cx="18" cy="13" r="1.5" fill="#ffffff"/>`
+            },
+            {
+                id: 'foxiny',
+                emoji: '🦊',
+                name: 'FoxI.Ny',
+                member: 'I.N',
+                color: '#a0f06a', // Bright Pastel Green
+                quote: '"Maknae power! Keep smiling and finish your goals today! 🦊"',
+                svg: `<path d="M14 23 C7 23 5 16 6 12 C7 8 14 5 14 5 C14 5 21 8 22 12 C23 16 21 23 14 23 Z" fill="none" stroke="#ffffff" stroke-width="2"/>
+                      <path d="M6 10 L2 3 L10 6" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <path d="M22 10 L26 3 L18 6" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+                      <circle cx="10" cy="13" r="1.2" fill="#ffffff"/>
+                      <circle cx="18" cy="13" r="1.2" fill="#ffffff"/>
+                      <polygon points="13,17 15,17 14,18.5" fill="#ffffff"/>`
+            }
+        ];
+
+        let activeBuddyIndex = 0; // Default Wolf Chan
+        let currentMode = 'clock'; // 'clock' or 'timer'
+        
+        // Pomodoro State Variables
+        let timerInterval = null;
+        let timerTotalSeconds = 25 * 60;
+        let timerRemainingSeconds = 25 * 60;
+        let isTimerRunning = false;
+        
+        // Study Stats
+        let totalFocusMinutes = 0;
+        let completedPomodoroSessions = 0;
+
+        // Tasks Array
+        let tasks = [
+            { id: 1, text: 'Review Korean vocabulary & SKZ lyrics', completed: false },
+            { id: 2, text: 'Complete 25 min focused study block', completed: true }
+        ];
+
+        const skzooSelectorGrid = document.getElementById('skzooSelectorGrid');
+        const activeBuddyName = document.getElementById('activeBuddyName');
+        const buddyQuoteBox = document.getElementById('buddyQuoteBox');
+        const centerCharacterEmoji = document.getElementById('centerCharacterEmoji');
+        const skzooNodesGroup = document.getElementById('skzooNodesGroup');
+        const constellationLines = document.getElementById('constellationLines');
+        const compassTicks = document.getElementById('compassTicks');
+        
+        const modeClockBtn = document.getElementById('modeClockBtn');
+        const modeTimerBtn = document.getElementById('modeTimerBtn');
+        const clockHandsGroup = document.getElementById('clockHandsGroup');
+        const timerProgressArc = document.getElementById('timerProgressArc');
+        
+        const mainDigitalDisplay = document.getElementById('mainDigitalDisplay');
+        const subDisplayLabel = document.getElementById('subDisplayLabel');
+        const pomodoroControls = document.getElementById('pomodoroControls');
+        const startTimerBtn = document.getElementById('startTimerBtn');
+        const pauseTimerBtn = document.getElementById('pauseTimerBtn');
+        const resetTimerBtn = document.getElementById('resetTimerBtn');
+
+        function initStarfield() {
+            const container = document.getElementById('starfield');
+            const count = 70;
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'absolute rounded-full bg-white star-twinkle';
+                const size = Math.random() * 2.5 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.opacity = (Math.random() * 0.7 + 0.2).toFixed(2);
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                star.style.setProperty('--delay', `${Math.random() * 3}s`);
+                container.appendChild(star);
+            }
+        }
+
+        function renderCompassTicks() {
+            let ticksHTML = '';
+            for (let i = 0; i < 60; i++) {
+                const angle = i * 6;
+                const isMajor = i % 5 === 0;
+                const r1 = 263;
+                const r2 = isMajor ? 252 : 257;
+                const rad = (angle - 90) * (Math.PI / 180);
+                
+                const x1 = 300 + r1 * Math.cos(rad);
+                const y1 = 300 + r1 * Math.sin(rad);
+                const x2 = 300 + r2 * Math.cos(rad);
+                const y2 = 300 + r2 * Math.sin(rad);
+
+                ticksHTML += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isMajor ? '#f2c8ec' : '#6b5080'}" stroke-width="${isMajor ? 1.5 : 1}"/>`;
+            }
+            compassTicks.innerHTML = ticksHTML;
+        }
+
+        function renderSKZOONodes() {
+            let nodesHTML = '';
+            let linesHTML = '';
+            const radius = 195; // Ring distance from center
+            const points = [];
+
+            SKZOO_MEMBERS.forEach((member, index) => {
+                // Angle starting at top (-90 deg) spread evenly in 8 directions
+                const angleDeg = (index * 45) - 90;
+                const rad = angleDeg * (Math.PI / 180);
+                const cx = 300 + radius * Math.cos(rad);
+                const cy = 300 + radius * Math.sin(rad);
+                points.push({ cx, cy, color: member.color });
+
+                const isSelected = index === activeBuddyIndex;
+                const scale = isSelected ? 1.25 : 1.0;
+
+                nodesHTML += `
+                    <g transform="translate(${cx}, ${cy}) scale(${scale})" class="cursor-pointer transition-all duration-300" onclick="selectBuddy(${index})">
+                        <!-- Node Glow Ring -->
+                        <circle cx="0" cy="0" r="22" fill="#1b1224" stroke="${member.color}" stroke-width="${isSelected ? 2.5 : 1.2}" opacity="0.9" />
+                        ${isSelected ? `<circle cx="0" cy="0" r="26" fill="none" stroke="${member.color}" stroke-width="1" stroke-dasharray="3,3" />` : ''}
+                        
+                        <!-- Representative SKZOO emoji -->
+                        <text x="0" y="8" text-anchor="middle" font-size="24"
+                              font-family="sans-serif">${member.emoji}</text>
+
+                        <!-- Label Tag -->
+                        <text x="0" y="34" font-family="'Patrick Hand', cursive" font-size="11" fill="${isSelected ? '#ffffff' : '#c9a8db'}" text-anchor="middle" font-weight="${isSelected ? 'bold' : 'normal'}">
+                            ${member.name}
+                        </text>
+                    </g>
+                `;
+            });
+
+            // Connect nodes with dotted constellation lines
+            for (let i = 0; i < points.length; i++) {
+                const p1 = points[i];
+                const p2 = points[(i + 1) % points.length];
+                linesHTML += `<line x1="${p1.cx}" y1="${p1.cy}" x2="${p2.cx}" y2="${p2.cy}" />`;
+            }
+
+            skzooNodesGroup.innerHTML = nodesHTML;
+            constellationLines.innerHTML = linesHTML;
+        }
+
+        function renderBuddySelector() {
+            skzooSelectorGrid.innerHTML = SKZOO_MEMBERS.map((m, idx) => `
+                <button onclick="selectBuddy(${idx})" 
+                    class="p-2 rounded-xl flex flex-col items-center gap-1 transition-all border ${idx === activeBuddyIndex ? 'bg-pink-500/25 border-pink-400 shadow-md' : 'bg-black/30 border-white/5 hover:border-white/20'}">
+                    <span class="text-xl leading-6" aria-hidden="true">${m.emoji}</span>
+                    <span class="text-[10px] text-gray-300 truncate w-full text-center font-doodle">${m.name}</span>
+                </button>
+            `).join('');
+
+            const buddy = SKZOO_MEMBERS[activeBuddyIndex];
+            activeBuddyName.textContent = buddy.name;
+            activeBuddyName.style.borderColor = buddy.color;
+            buddyQuoteBox.textContent = buddy.quote;
+            
+            // Update central star icon
+            centerCharacterEmoji.textContent = buddy.emoji;
+
+            renderSKZOONodes();
+        }
+
+        window.selectBuddy = function(index) {
+            activeBuddyIndex = index;
+            renderBuddySelector();
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'clock') {
+                modeClockBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-pink-500/30 text-pink-200 border border-pink-400/30 shadow-sm";
+                modeTimerBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-gray-400 hover:text-white";
+                
+                clockHandsGroup.classList.remove('opacity-0');
+                clockHandsGroup.classList.add('opacity-100');
+                timerProgressArc.setAttribute('opacity', '0.2');
+                
+                pomodoroControls.classList.add('hidden');
+                subDisplayLabel.textContent = "Your Local Time";
+                updateClockDisplay();
+            } else {
+                modeTimerBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-pink-500/30 text-pink-200 border border-pink-400/30 shadow-sm";
+                modeClockBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-gray-400 hover:text-white";
+                
+                clockHandsGroup.classList.remove('opacity-100');
+                clockHandsGroup.classList.add('opacity-0');
+                timerProgressArc.setAttribute('opacity', '0.9');
+
+                pomodoroControls.classList.remove('hidden');
+                subDisplayLabel.textContent = "Pomodoro Study Session";
+                updateTimerDisplay();
+            }
+        }
+
+        modeClockBtn.addEventListener('click', () => setMode('clock'));
+        modeTimerBtn.addEventListener('click', () => setMode('timer'));
+
+        function updateClockDisplay() {
+            if (currentMode !== 'clock') return;
+
+            const now = new Date();
+            // Use the user's local device time.
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // Rotate Clock Hands
+            const hourAngle = ((hours % 12) + minutes / 60) * 30;
+            const minuteAngle = (minutes + seconds / 60) * 6;
+            const secondAngle = seconds * 6;
+
+            document.getElementById('hourHand').setAttribute('transform', `rotate(${hourAngle} 300 300)`);
+            document.getElementById('minuteHand').setAttribute('transform', `rotate(${minuteAngle} 300 300)`);
+            document.getElementById('secondHand').setAttribute('transform', `rotate(${secondAngle} 300 300)`);
+
+            // Format Digital Display
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const formatTwo = (num) => String(num).padStart(2, '0');
+
+            mainDigitalDisplay.textContent = `${formatTwo(displayHours)}:${formatTwo(minutes)}:${formatTwo(seconds)} ${ampm}`;
+        }
+
+        setInterval(updateClockDisplay, 1000);
+
+        function updateTimerDisplay() {
+            if (currentMode !== 'timer') return;
+
+            const minutes = Math.floor(timerRemainingSeconds / 60);
+            const seconds = timerRemainingSeconds % 60;
+            const formatTwo = (num) => String(num).padStart(2, '0');
+
+            mainDigitalDisplay.textContent = `${formatTwo(minutes)}:${formatTwo(seconds)}`;
+
+            // Update Radial Progress Arc
+            const totalCircumference = 2 * Math.PI * 269; // ~1690
+            const progressRatio = timerRemainingSeconds / timerTotalSeconds;
+            const dashOffset = totalCircumference * (1 - progressRatio);
+            
+            timerProgressArc.style.strokeDasharray = totalCircumference;
+            timerProgressArc.style.strokeDashoffset = dashOffset;
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            startTimerBtn.classList.add('hidden');
+            pauseTimerBtn.classList.remove('hidden');
+
+            timerInterval = setInterval(() => {
+                if (timerRemainingSeconds > 0) {
+                    timerRemainingSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    // Timer Finished
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    startTimerBtn.classList.remove('hidden');
+                    pauseTimerBtn.classList.add('hidden');
+
+                    // Stats recording
+                    const elapsedMinutes = Math.round(timerTotalSeconds / 60);
+                    totalFocusMinutes += elapsedMinutes;
+                    completedPomodoroSessions++;
+                    document.getElementById('totalStudyTime').textContent = `${totalFocusMinutes}m`;
+                    document.getElementById('completedSessions').textContent = completedPomodoroSessions;
+
+                    playChimeSound();
+                    alert(`★ Great job STAY! Session completed! Take a well deserved break! ★`);
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            startTimerBtn.classList.remove('hidden');
+            pauseTimerBtn.classList.add('hidden');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerRemainingSeconds = timerTotalSeconds;
+            updateTimerDisplay();
+        }
+
+        function setTimerPreset(minutes) {
+            pauseTimer();
+            timerTotalSeconds = minutes * 60;
+            timerRemainingSeconds = timerTotalSeconds;
+            updateTimerDisplay();
+        }
+
+        startTimerBtn.addEventListener('click', startTimer);
+        pauseTimerBtn.addEventListener('click', pauseTimer);
+        resetTimerBtn.addEventListener('click', resetTimer);
+
+        document.getElementById('preset25Btn').addEventListener('click', () => setTimerPreset(25));
+        document.getElementById('preset50Btn').addEventListener('click', () => setTimerPreset(50));
+        document.getElementById('preset5Btn').addEventListener('click', () => setTimerPreset(5));
+        document.getElementById('preset15Btn').addEventListener('click', () => setTimerPreset(15));
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            const completedCount = tasks.filter(t => t.completed).length;
+            document.getElementById('taskCounter').textContent = `${completedCount}/${tasks.length} completed`;
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = `<p class="text-xs text-gray-500 text-center py-6 font-doodle">No study goals yet! Add one above ★</p>`;
+                return;
+            }
+
+            taskList.innerHTML = tasks.map(task => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-all">
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <input type="checkbox" id="task-${task.id}" ${task.completed ? 'checked' : ''} 
+                            onchange="toggleTask(${task.id})"
+                            class="task-checkbox w-4 h-4 rounded accent-pink-500 bg-purple-950 border-purple-500/30 cursor-pointer">
+                        <label for="task-${task.id}" class="text-xs text-purple-100 truncate cursor-pointer select-none">
+                            ${task.text}
+                        </label>
+                    </div>
+                    <button onclick="deleteTask(${task.id})" class="text-gray-500 hover:text-pink-400 p-1 text-xs transition-colors">
+                        ✕
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        window.toggleTask = function(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            renderTasks();
+        };
+
+        window.deleteTask = function(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        };
+
+        document.getElementById('addTaskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (text) {
+                tasks.push({ id: Date.now(), text, completed: false });
+                input.value = '';
+                renderTasks();
+            }
+        });
+
+        let audioCtx = null;
+        let rainGain = null;
+        let spaceGain = null;
+        let cafeGain = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // Synthesize Deep Space Pink Noise Hum
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            // Filter for low space hum
+            const spaceFilter = audioCtx.createBiquadFilter();
+            spaceFilter.type = 'lowpass';
+            spaceFilter.frequency.value = 180;
+
+            spaceGain = audioCtx.createGain();
+            spaceGain.gain.value = 0;
+
+            whiteNoise.connect(spaceFilter);
+            spaceFilter.connect(spaceGain);
+            spaceGain.connect(audioCtx.destination);
+            whiteNoise.start();
+
+            // Soft cafe ambience: layered filtered noise with a gentle, low-volume level.
+            const cafeNoise = audioCtx.createBufferSource();
+            cafeNoise.buffer = noiseBuffer;
+            cafeNoise.loop = true;
+            const cafeFilter = audioCtx.createBiquadFilter();
+            cafeFilter.type = 'bandpass';
+            cafeFilter.frequency.value = 420;
+            cafeFilter.Q.value = 0.7;
+            cafeGain = audioCtx.createGain();
+            cafeGain.gain.value = 0;
+            cafeNoise.connect(cafeFilter);
+            cafeFilter.connect(cafeGain);
+            cafeGain.connect(audioCtx.destination);
+            cafeNoise.start();
+
+            // Rain noise synth
+            const rainNoise = audioCtx.createBufferSource();
+            rainNoise.buffer = noiseBuffer;
+            rainNoise.loop = true;
+
+            const rainFilter = audioCtx.createBiquadFilter();
+            rainFilter.type = 'bandpass';
+            rainFilter.frequency.value = 1000;
+
+            rainGain = audioCtx.createGain();
+            rainGain.gain.value = 0;
+
+            rainNoise.connect(rainFilter);
+            rainFilter.connect(rainGain);
+            rainGain.connect(audioCtx.destination);
+            rainNoise.start();
+        }
+
+        document.getElementById('rainVolume').addEventListener('input', (e) => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if (rainGain) rainGain.gain.value = e.target.value / 300;
+        });
+
+        document.getElementById('spaceVolume').addEventListener('input', (e) => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if (spaceGain) spaceGain.gain.value = e.target.value / 200;
+        });
+
+        document.getElementById('cafeVolume').addEventListener('input', (e) => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            if (cafeGain) cafeGain.gain.value = e.target.value / 500;
+        });
+
+        // Audio is browser-gated until a user interacts with the page.
+        document.getElementById('audioToggleBtn').addEventListener('click', async () => {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
+            const sliders = ['rainVolume', 'spaceVolume', 'cafeVolume'];
+            const anyActive = sliders.some(id => Number(document.getElementById(id).value) > 0);
+            sliders.forEach(id => {
+                const slider = document.getElementById(id);
+                slider.value = anyActive ? 0 : 25;
+                slider.dispatchEvent(new Event('input'));
+            });
+        });
+
+        function playChimeSound() {
+            if (!audioCtx) initAudio();
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 1.2); // C6
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            initStarfield();
+            renderCompassTicks();
+            renderBuddySelector();
+            renderTasks();
+            updateClockDisplay();
+            
+            // Set current year in footer
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        };
+    </script>
+</body>
+</html>
